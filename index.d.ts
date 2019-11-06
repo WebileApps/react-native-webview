@@ -28,6 +28,11 @@ declare class WebView extends Component<WebViewProps> {
     stopLoading(): void;
 
     /**
+     * Download the current webpage contents as a PDF.
+     */
+    downloadAsPDF() : Promise<any>;
+
+    /**
      * Extra Native Component Config.
      */
     extraNativeComponentConfig: () => any;

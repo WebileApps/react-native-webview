@@ -1,5 +1,5 @@
 {
-  "name": "react-native-webview",
+  "name": "@webileapps/react-native-webview",
   "description": "React Native WebView component for iOS, Android, and Windows 10 (coming soon)",
   "main": "index.js",
   "typings": "index.d.ts",
@@ -61,7 +61,10 @@
     "url": "https://github.com/react-native-community/react-native-webview.git"
   },
   "files": [
-    "android",
+    "android/src",
+    "android/.editorconfig",
+    "android/build.gradle",
+    "android/gradle.properties",
     "ios",
     "lib",
     "index.js",

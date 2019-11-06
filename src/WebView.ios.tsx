@@ -121,6 +121,13 @@ class WebView extends React.Component<IOSWebViewProps, State> {
   };
 
   /**
+   * Convert current page contents as PDF.
+   */
+  downloadAsPDF = async () => {
+    return (RNCWebViewManager as any).downloadAsPDF(this.getWebViewHandle());
+  };
+
+  /**
    * Request focus on WebView rendered page.
    */
   requestFocus = () => {

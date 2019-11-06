@@ -103,6 +103,14 @@ class WebView extends React.Component<AndroidWebViewProps, State> {
       null,
     );
   };
+  
+  downloadAsPDF = async () => {
+    UIManager.dispatchViewManagerCommand(
+      this.getWebViewHandle(),
+      this.getCommands().downloadAsPDF,
+      null,
+    );
+  };
 
   requestFocus = () => {
     UIManager.dispatchViewManagerCommand(

@@ -19,6 +19,7 @@ export interface WebViewCommands {
   injectJavaScript: Function;
   loadUrl: Function;
   requestFocus: Function;
+  downloadAsPDF: Function;
 }
 
 export interface CustomUIManager extends UIManagerStatic {

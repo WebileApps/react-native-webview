@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
+#import <CoreGraphics/CoreGraphics.h>
 #import "RNCWebView.h"
 #import <React/RCTConvert.h>
 #import <React/RCTAutoInsetsProtocol.h>
@@ -27,6 +27,38 @@ static NSURLCredential* clientAuthenticationCredential;
 }
 @end
 
+#define PDFSize CGSizeMake(612,792)
+
+@implementation UIPrintPageRenderer (PDF)
+- (NSData*) printToPDF:(NSInteger**)_numberOfPages
+                   backgroundColor:(UIColor*)_bgColor
+{
+    NSMutableData *pdfData = [NSMutableData data];
+    UIGraphicsBeginPDFContextToData( pdfData, self.paperRect, nil );
+
+    [self prepareForDrawingPages: NSMakeRange(0, self.numberOfPages)];
+
+    CGRect bounds = UIGraphicsGetPDFContextBounds();
+
+    for ( int i = 0 ; i < self.numberOfPages ; i++ )
+    {
+        UIGraphicsBeginPDFPage();
+
+
+        CGContextRef currentContext = UIGraphicsGetCurrentContext();
+        CGContextSetFillColorWithColor(currentContext, _bgColor.CGColor);
+        CGContextFillRect(currentContext, self.paperRect);
+
+        [self drawPageAtIndex: i inRect: bounds];
+    }
+
+    *_numberOfPages = self.numberOfPages;
+
+    UIGraphicsEndPDFContext();
+    return pdfData;
+}
+@end
+
 @interface RNCWebView () <WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler, UIScrollViewDelegate, RCTAutoInsetsProtocol>
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingStart;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingFinish;
@@ -43,6 +75,8 @@ static NSURLCredential* clientAuthenticationCredential;
   UIColor * _savedBackgroundColor;
   BOOL _savedHideKeyboardAccessoryView;
   BOOL _savedKeyboardDisplayRequiresUserAction;
+
+  NSInteger *_numberOfPages;
 
   // Workaround for StatusBar appearance bug for iOS 12
   // https://github.com/react-native-community/react-native-webview/issues/62
@@ -912,6 +946,43 @@ static NSURLCredential* clientAuthenticationCredential;
 - (void)stopLoading
 {
   [_webView stopLoading];
+}
+
+- (NSDictionary* )downloadAsPDF {
+  CGSize _PDFSize = PDFSize;
+  float _paddingBottom = 10.f;
+  float _paddingTop = 10.f;
+  float _paddingLeft = 10.f;
+  float _paddingRight = 10.f;
+  NSString *_fileName = [[NSProcessInfo processInfo] globallyUniqueString];
+  NSString *_filePath = [NSString stringWithFormat:@"%@%@.pdf", NSTemporaryDirectory(), _fileName];
+
+
+  UIColor *_bgColor = [UIColor colorWithRed: (246.0/255.0) green:(245.0/255.0) blue:(240.0/255.0) alpha:1];
+
+  UIPrintPageRenderer *render = [[UIPrintPageRenderer alloc] init];
+    [render addPrintFormatter:_webView.viewPrintFormatter startingAtPageAtIndex:0];
+
+    // Define the printableRect and paperRect
+    // If the printableRect defines the printable area of the page
+    CGRect paperRect = CGRectMake(0, 0, _PDFSize.width, _PDFSize.height);
+    CGRect printableRect = CGRectMake(_paddingTop, _paddingLeft, _PDFSize.width-(_paddingLeft + _paddingRight), _PDFSize.height-(_paddingBottom + _paddingTop));
+
+
+    [render setValue:[NSValue valueWithCGRect:paperRect] forKey:@"paperRect"];
+    [render setValue:[NSValue valueWithCGRect:printableRect] forKey:@"printableRect"];
+
+    NSData * pdfData = [render printToPDF:&_numberOfPages backgroundColor:_bgColor ];
+
+    if (!pdfData) {
+        [NSException raise:@"Could not print to PDF" format:@"Error writing to PDF"];
+    }
+    [pdfData writeToFile:_filePath atomically:YES];
+    NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSString stringWithFormat: @"%ld", (long)_numberOfPages], @"numberOfPages",
+                         _filePath, @"filePath", nil];
+    return data;
+
 }
 
 - (void)setBounces:(BOOL)bounces

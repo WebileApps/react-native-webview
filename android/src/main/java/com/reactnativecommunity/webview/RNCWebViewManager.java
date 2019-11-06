@@ -108,6 +108,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public static final int COMMAND_GO_FORWARD = 2;
   public static final int COMMAND_RELOAD = 3;
   public static final int COMMAND_STOP_LOADING = 4;
+  public static final int COMMAND_DOWNLOAD_AS_PDF = 9;
   public static final int COMMAND_POST_MESSAGE = 5;
   public static final int COMMAND_INJECT_JAVASCRIPT = 6;
   public static final int COMMAND_LOAD_URL = 7;
@@ -527,6 +528,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       "loadUrl", COMMAND_LOAD_URL
     );
     map.put("requestFocus", COMMAND_FOCUS);
+    map.put("downloadAsPDF", COMMAND_DOWNLOAD_AS_PDF);
     return map;
   }
 
@@ -544,6 +546,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         break;
       case COMMAND_STOP_LOADING:
         root.stopLoading();
+        break;
+      case COMMAND_DOWNLOAD_AS_PDF:
+        android.print.PDFPrinter.createWebPrintJob(root);
         break;
       case COMMAND_POST_MESSAGE:
         try {

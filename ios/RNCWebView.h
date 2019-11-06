@@ -59,5 +59,6 @@
 - (void)goBack;
 - (void)reload;
 - (void)stopLoading;
+- (NSDictionary *)downloadAsPDF;
 
 @end
